@@ -11,9 +11,16 @@ app.use(express.static("public"));
 
 function saveLog(data) {
     let logs = [];
-    if (fs.existsSync(LOG_FILE)) {
-        logs = JSON.parse(fs.readFileSync(LOG_FILE, "utf-8"));
+
+    try {
+        if (fs.existsSync(LOG_FILE)) {
+            const fileData = fs.readFileSync(LOG_FILE, "utf-8");
+            logs = fileData ? JSON.parse(fileData) : [];
+        }
+    } catch (err) {
+        logs = [];
     }
+
     logs.push(data);
     fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2));
 }
@@ -46,7 +53,9 @@ app.post("/submit", (req, res) => {
     const name = req.body.name;
 
     const logData = {
-        date: new Date().toLocaleString("pt-BR", { timeZone: "America/Brasilia" }),
+        date: new Date().toLocaleString("pt-BR", {
+            timeZone: "America/Sao_Paulo"
+        }),
         ip: ip,
         name: name
     };
@@ -91,9 +100,17 @@ function auth(req, res, next) {
 }
 
 app.get("/logs", auth, (req, res) => {
-    if (!fs.existsSync(LOG_FILE)) return res.send("Sem logs ainda.");
+    let logs = [];
 
-    const logs = JSON.parse(fs.readFileSync(LOG_FILE, "utf-8"));
+    try {
+        if (fs.existsSync(LOG_FILE)) {
+            const fileData = fs.readFileSync(LOG_FILE, "utf-8");
+            logs = fileData ? JSON.parse(fileData) : [];
+        }
+    } catch (err) {
+        logs = [];
+    }
+
     let table = `
     <!DOCTYPE html>
     <html lang="pt-BR">
