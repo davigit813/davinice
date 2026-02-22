@@ -46,7 +46,7 @@ app.post("/submit", (req, res) => {
     const name = req.body.name;
 
     const logData = {
-        date: new Date().toLocaleString(),
+        date: new Date().toLocaleString("pt-BR", { timeZone: "America/Brasilia" }),
         ip: ip,
         name: name
     };
