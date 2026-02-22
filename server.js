@@ -54,28 +54,28 @@ app.post("/submit", (req, res) => {
     saveLog(logData);
 
     res.send(`
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Hello</title>
-        <link rel="stylesheet" href="/style.css">
-    </head>
-    <body>
-        <div class="container">
-            <h1>Olá ${name}!</h1>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hello</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="container">
+<h1>Olá ${name}!</h1>
 
-            <audio autoplay loop controls>
-                <source src="/soubonito.mp3" type="audio/mpeg">
-            </audio>
+<audio autoplay loop controls>
+<source src="/soubonito.mp3" type="audio/mpeg">
+</audio>
 
-            <br><br>
-            <a href="/">Voltar</a>
-        </div>
-    </body>
-    </html>
-    `);
+<br><br>
+<a href="/">Voltar</a>
+</div>
+</body>
+</html>
+`);
 });
 
 function auth(req, res, next) {
