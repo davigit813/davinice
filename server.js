@@ -8,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 const LOG_FILE = "logs.json";
 
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
 
 // Função para salvar log
 function saveLog(data) {
