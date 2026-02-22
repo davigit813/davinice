@@ -7,6 +7,8 @@ const PORT = process.env.PORT || 3000;
 
 const LOG_FILE = "logs.json";
 
+app.use(express.urlencoded({ extended: true }));
+
 // Função para salvar log
 function saveLog(data) {
     let logs = [];
@@ -19,15 +21,26 @@ function saveLog(data) {
     fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2));
 }
 
-// Rota principal
+// 🔹 Página inicial com formulário
 app.get("/", (req, res) => {
+    res.send(`
+        <h2>Digite seu nome para o Knight saber quem é:</h2>
+        <form method="POST" action="/submit">
+            <input type="text" name="name" required />
+            <button type="submit">Enviar</button>
+        </form>
+    `);
+});
+
+// 🔹 Recebe o nome e salva log
+app.post("/submit", (req, res) => {
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
-    const userAgent = req.headers["user-agent"];
+    const name = req.body.name;
 
     const logData = {
         date: new Date().toLocaleString(),
         ip: ip,
-        userAgent: userAgent
+        name: name
     };
 
     saveLog(logData);
@@ -35,7 +48,7 @@ app.get("/", (req, res) => {
     res.send("<h1>Hello World</h1>");
 });
 
-// Middleware de proteção
+// 🔐 Middleware de proteção
 function auth(req, res, next) {
     const user = basicAuth(req);
 
@@ -50,7 +63,7 @@ function auth(req, res, next) {
     next();
 }
 
-// Rota de logs
+// 📊 Rota de logs
 app.get("/logs", auth, (req, res) => {
     if (!fs.existsSync(LOG_FILE)) {
         return res.send("Sem logs ainda.");
@@ -66,7 +79,7 @@ app.get("/logs", auth, (req, res) => {
         <tr>
             <th>Data</th>
             <th>IP</th>
-            <th>Navegador</th>
+            <th>Nome</th>
         </tr>
     `;
 
@@ -75,7 +88,7 @@ app.get("/logs", auth, (req, res) => {
             <tr>
                 <td>${log.date}</td>
                 <td>${log.ip}</td>
-                <td>${log.userAgent}</td>
+                <td>${log.name}</td>
             </tr>
         `;
     });
@@ -85,10 +98,10 @@ app.get("/logs", auth, (req, res) => {
     res.send(table);
 });
 
-// Rota para limpar logs
+// 🗑 Limpar logs
 app.get("/clear", auth, (req, res) => {
     fs.writeFileSync(LOG_FILE, "[]");
-    res.send("Logs apagados com sucesso.<br><a href='/logs'>Voltar</a>");
+    res.send("Logs apagados.<br><a href='/logs'>Voltar</a>");
 });
 
 app.listen(PORT, () => {
