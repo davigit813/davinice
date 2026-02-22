@@ -6,13 +6,9 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const LOG_FILE = "logs.json";
 
-// Middleware para pegar dados do formulário
 app.use(express.urlencoded({ extended: true }));
-
-// Middleware para servir arquivos estáticos (CSS, áudio, etc.)
 app.use(express.static("public"));
 
-// Função para salvar logs
 function saveLog(data) {
     let logs = [];
     if (fs.existsSync(LOG_FILE)) {
@@ -22,7 +18,6 @@ function saveLog(data) {
     fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2));
 }
 
-// 🔹 Página inicial estilizada
 app.get("/", (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -46,7 +41,6 @@ app.get("/", (req, res) => {
     `);
 });
 
-// 🔹 Receber o nome e salvar log
 app.post("/submit", (req, res) => {
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     const name = req.body.name;
@@ -71,9 +65,12 @@ app.post("/submit", (req, res) => {
     <body>
         <div class="container">
             <h1>Olá ${name}!</h1>
-            <audio autoplay muted loop controls>
-                <source src="music/SaveTik.io_7472943081663253765.mp3" type="audio/mpeg">
+
+            <audio autoplay loop controls>
+                <source src="/audio.mp3" type="audio/mpeg">
             </audio>
+
+            <br><br>
             <a href="/">Voltar</a>
         </div>
     </body>
@@ -81,7 +78,6 @@ app.post("/submit", (req, res) => {
     `);
 });
 
-// 🔐 Middleware de proteção básica
 function auth(req, res, next) {
     const user = basicAuth(req);
     const USERNAME = "admin";
@@ -94,7 +90,6 @@ function auth(req, res, next) {
     next();
 }
 
-// 📊 Rota de logs estilizada
 app.get("/logs", auth, (req, res) => {
     if (!fs.existsSync(LOG_FILE)) return res.send("Sem logs ainda.");
 
@@ -141,13 +136,11 @@ app.get("/logs", auth, (req, res) => {
     res.send(table);
 });
 
-// 🗑 Limpar logs
 app.get("/clear", auth, (req, res) => {
     fs.writeFileSync(LOG_FILE, "[]");
     res.send("Logs apagados.<br><a href='/logs'>Voltar</a>");
 });
 
-// Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(\`Servidor rodando na porta \${PORT}\`);
 });
