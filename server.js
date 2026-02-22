@@ -40,9 +40,6 @@ app.get("/", (req, res) => {
                 <input type="text" name="name" placeholder="Seu nome" required />
                 <button type="submit">Enviar</button>
             </form>
-            <audio autoplay muted loop controls>
-                <source src="/audio.mp3" type="audio/mpeg">
-            </audio>
         </div>
     </body>
     </html>
@@ -74,6 +71,9 @@ app.post("/submit", (req, res) => {
     <body>
         <div class="container">
             <h1>Olá ${name}!</h1>
+            <audio autoplay muted loop controls>
+                <source src="/SaveTik.io_7472943081663253765" type="audio/mpeg">
+            </audio>
             <a href="/">Voltar</a>
         </div>
     </body>
@@ -85,7 +85,7 @@ app.post("/submit", (req, res) => {
 function auth(req, res, next) {
     const user = basicAuth(req);
     const USERNAME = "admin";
-    const PASSWORD = "1234";
+    const PASSWORD = "12345";
 
     if (!user || user.name !== USERNAME || user.pass !== PASSWORD) {
         res.set("WWW-Authenticate", 'Basic realm="Logs"');
