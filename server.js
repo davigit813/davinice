@@ -12,7 +12,7 @@ app.use(express.static("public"));
 function saveLog(data) {
     let logs = [];
     if (fs.existsSync(LOG_FILE)) {
-        logs = JSON.parse(fs.readFileSync(LOG_FILE));
+        logs = JSON.parse(fs.readFileSync(LOG_FILE, "utf-8"));
     }
     logs.push(data);
     fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2));
@@ -93,7 +93,7 @@ function auth(req, res, next) {
 app.get("/logs", auth, (req, res) => {
     if (!fs.existsSync(LOG_FILE)) return res.send("Sem logs ainda.");
 
-    const logs = JSON.parse(fs.readFileSync(LOG_FILE));
+    const logs = JSON.parse(fs.readFileSync(LOG_FILE, "utf-8"));
     let table = `
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -142,5 +142,5 @@ app.get("/clear", auth, (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(\`Servidor rodando na porta \${PORT}\`);
+    console.log("Servidor rodando na porta " + PORT);
 });
