@@ -21,6 +21,7 @@
   "homepage": "https://github.com/davigit813/davinice#readme",
   "dependencies": {
     "basic-auth": "^2.0.1",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "mongoose": "^9.2.1"
   }
