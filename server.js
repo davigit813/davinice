@@ -1,29 +1,29 @@
 const express = require("express");
-const fs = require("fs");
+const mongoose = require("mongoose");
 const basicAuth = require("basic-auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const LOG_FILE = "logs.json";
+
+// 🔥 CONECTAR NO MONGODB (COLOQUE SUA STRING AQUI)
+mongoose.connect("SUA_STRING_DO_MONGODB", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log("MongoDB conectado"))
+.catch(err => console.log("Erro Mongo:", err));
+
+// 📦 Schema
+const LogSchema = new mongoose.Schema({
+    date: String,
+    ip: String,
+    name: String
+});
+
+const Log = mongoose.model("Log", LogSchema);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
-
-function saveLog(data) {
-    let logs = [];
-
-    try {
-        if (fs.existsSync(LOG_FILE)) {
-            const fileData = fs.readFileSync(LOG_FILE, "utf-8");
-            logs = fileData ? JSON.parse(fileData) : [];
-        }
-    } catch (err) {
-        logs = [];
-    }
-
-    logs.push(data);
-    fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2));
-}
 
 app.get("/", (req, res) => {
     res.send(`
@@ -48,19 +48,19 @@ app.get("/", (req, res) => {
     `);
 });
 
-app.post("/submit", (req, res) => {
+app.post("/submit", async (req, res) => {
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     const name = req.body.name;
 
-    const logData = {
+    const logData = new Log({
         date: new Date().toLocaleString("pt-BR", {
             timeZone: "America/Sao_Paulo"
         }),
         ip: ip,
         name: name
-    };
+    });
 
-    saveLog(logData);
+    await logData.save();
 
     res.send(`
 <!DOCTYPE html>
@@ -87,6 +87,7 @@ app.post("/submit", (req, res) => {
 `);
 });
 
+// 🔐 Login Basic Auth
 function auth(req, res, next) {
     const user = basicAuth(req);
     const USERNAME = "admin";
@@ -99,17 +100,8 @@ function auth(req, res, next) {
     next();
 }
 
-app.get("/logs", auth, (req, res) => {
-    let logs = [];
-
-    try {
-        if (fs.existsSync(LOG_FILE)) {
-            const fileData = fs.readFileSync(LOG_FILE, "utf-8");
-            logs = fileData ? JSON.parse(fileData) : [];
-        }
-    } catch (err) {
-        logs = [];
-    }
+app.get("/logs", auth, async (req, res) => {
+    const logs = await Log.find().sort({ _id: -1 });
 
     let table = `
     <!DOCTYPE html>
@@ -153,8 +145,8 @@ app.get("/logs", auth, (req, res) => {
     res.send(table);
 });
 
-app.get("/clear", auth, (req, res) => {
-    fs.writeFileSync(LOG_FILE, "[]");
+app.get("/clear", auth, async (req, res) => {
+    await Log.deleteMany({});
     res.send("Logs apagados.<br><a href='/logs'>Voltar</a>");
 });
 
