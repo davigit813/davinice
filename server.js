@@ -5,7 +5,7 @@ const basicAuth = require("basic-auth");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🔥 CONECTAR NO MONGODB (USA A VARIÁVEL DO RENDER)
+// 🔥 CONECTAR NO MONGODB
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB conectado"))
 .catch(err => console.log("Erro Mongo:", err));
@@ -27,7 +27,6 @@ app.get("/", (req, res) => {
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
-        <meta charset="UTF-8">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Knight Logs</title>
@@ -98,6 +97,7 @@ function auth(req, res, next) {
     next();
 }
 
+// 📊 Página HTML protegida
 app.get("/logs", auth, async (req, res) => {
     const logs = await Log.find().sort({ _id: -1 });
 
@@ -143,9 +143,20 @@ app.get("/logs", auth, async (req, res) => {
     res.send(table);
 });
 
+// 🧹 Limpar logs
 app.get("/clear", auth, async (req, res) => {
     await Log.deleteMany({});
     res.send("Logs apagados.<br><a href='/logs'>Voltar</a>");
+});
+
+// 🔥 API PARA O APP DESKTOP
+app.get("/api/logs", async (req, res) => {
+    try {
+        const logs = await Log.find().sort({ _id: -1 });
+        res.json(logs);
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao buscar logs" });
+    }
 });
 
 app.listen(PORT, () => {
