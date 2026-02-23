@@ -5,11 +5,8 @@ const basicAuth = require("basic-auth");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🔥 CONECTAR NO MONGODB (COLOQUE SUA STRING AQUI)
-mongoose.connect("SUA_STRING_DO_MONGODB", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+// 🔥 CONECTAR NO MONGODB (USA A VARIÁVEL DO RENDER)
+mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB conectado"))
 .catch(err => console.log("Erro Mongo:", err));
 
@@ -30,6 +27,7 @@ app.get("/", (req, res) => {
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
+        <meta charset="UTF-8">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Knight Logs</title>
