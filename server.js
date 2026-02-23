@@ -20,7 +20,12 @@ const LogSchema = new mongoose.Schema({
 const Log = mongoose.model("Log", LogSchema);
 
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json()); // necessário para DELETE API
 app.use(express.static("public"));
+
+/* ===============================
+   PÁGINA PRINCIPAL
+================================ */
 
 app.get("/", (req, res) => {
     res.send(`
@@ -34,7 +39,7 @@ app.get("/", (req, res) => {
     </head>
     <body>
         <div class="container">
-            <h2>Digite seu nome para o Knight saber quem é:</h2>
+            <h2>Digite seu nome:</h2>
             <form method="POST" action="/submit">
                 <input type="text" name="name" placeholder="Seu nome" required />
                 <button type="submit">Enviar</button>
@@ -53,8 +58,8 @@ app.post("/submit", async (req, res) => {
         date: new Date().toLocaleString("pt-BR", {
             timeZone: "America/Sao_Paulo"
         }),
-        ip: ip,
-        name: name
+        ip,
+        name
     });
 
     await logData.save();
@@ -84,7 +89,10 @@ app.post("/submit", async (req, res) => {
 `);
 });
 
-// 🔐 Login Basic Auth
+/* ===============================
+   AUTH
+================================ */
+
 function auth(req, res, next) {
     const user = basicAuth(req);
     const USERNAME = "admin";
@@ -97,7 +105,10 @@ function auth(req, res, next) {
     next();
 }
 
-// 📊 Página HTML protegida
+/* ===============================
+   PÁGINA HTML PROTEGIDA
+================================ */
+
 app.get("/logs", auth, async (req, res) => {
     const logs = await Log.find().sort({ _id: -1 });
 
@@ -106,20 +117,17 @@ app.get("/logs", auth, async (req, res) => {
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Logs</title>
-        <link rel="stylesheet" href="/style.css">
     </head>
     <body>
-        <div class="container">
-            <h2>Logs de Acesso</h2>
-            <a href="/clear" class="clear-btn">🗑 Limpar Logs</a>
-            <table>
-                <tr>
-                    <th>Data</th>
-                    <th>IP</th>
-                    <th>Nome</th>
-                </tr>
+        <h2>Logs</h2>
+        <a href="/clear">🗑 Limpar Logs</a>
+        <table border="1">
+            <tr>
+                <th>Data</th>
+                <th>IP</th>
+                <th>Nome</th>
+            </tr>
     `;
 
     logs.forEach(log => {
@@ -133,9 +141,7 @@ app.get("/logs", auth, async (req, res) => {
     });
 
     table += `
-            </table>
-            <br><a href="/">Voltar</a>
-        </div>
+        </table>
     </body>
     </html>
     `;
@@ -143,13 +149,20 @@ app.get("/logs", auth, async (req, res) => {
     res.send(table);
 });
 
-// 🧹 Limpar logs
+/* ===============================
+   LIMPAR LOGS (SITE)
+================================ */
+
 app.get("/clear", auth, async (req, res) => {
     await Log.deleteMany({});
     res.send("Logs apagados.<br><a href='/logs'>Voltar</a>");
 });
 
-// 🔥 API PARA O APP DESKTOP
+/* ===============================
+   API PARA APP DESKTOP
+================================ */
+
+// 🔎 Buscar logs
 app.get("/api/logs", async (req, res) => {
     try {
         const logs = await Log.find().sort({ _id: -1 });
@@ -158,6 +171,20 @@ app.get("/api/logs", async (req, res) => {
         res.status(500).json({ error: "Erro ao buscar logs" });
     }
 });
+
+// 🧹 Apagar logs via API
+app.delete("/api/clear", async (req, res) => {
+    try {
+        await Log.deleteMany({});
+        res.json({ message: "Logs apagados" });
+    } catch (err) {
+        res.status(500).json({ error: "Erro ao apagar logs" });
+    }
+});
+
+/* ===============================
+   START
+================================ */
 
 app.listen(PORT, () => {
     console.log("Servidor rodando na porta " + PORT);
