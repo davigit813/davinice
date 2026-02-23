@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Logs</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+  <h2>Logs de Acesso</h2>
+  <button onclick="limparLogs()">🗑 Limpar Logs</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>IP</th>
+        <th>Nome</th>
+      </tr>
+    </thead>
+    <tbody id="logs"></tbody>
+  </table>
+
+  <br>
+  <a href="/">Voltar</a>
+</div>
+
+<script>
+async function carregarLogs() {
+  const res = await fetch("/api/logs");
+  const logs = await res.json();
+
+  const tabela = document.getElementById("logs");
+  tabela.innerHTML = "";
+
+  logs.forEach(log => {
+    const linha = `
+      <tr>
+        <td>${new Date(log.data).toLocaleString()}</td>
+        <td>${log.ip}</td>
+        <td>${log.nome}</td>
+      </tr>
+    `;
+    tabela.innerHTML += linha;
+  });
+}
+
+async function limparLogs() {
+  await fetch("/api/logs", { method: "DELETE" });
+  carregarLogs();
+}
+
+carregarLogs();
+</script>
+
+</body>
+</html>
