@@ -155,7 +155,7 @@ app.post("/submit", async (req, res) => {
     </head>
     <body>
         <div class="card">
-            <h1>Olá ${name} seu knight broxa!</h1>
+            <h1>Olá ${name}</h1>
 
             <audio controls autoplay>
                 <source src="/soubonito.mp3" type="audio/mpeg">
