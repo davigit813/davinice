@@ -183,6 +183,84 @@ app.delete("/api/clear", async (req, res) => {
 });
 
 /* ============================= */
+/*  DASHBOARD WEB (CELULAR)      */
+/* ============================= */
+
+app.get("/dashboard", (req, res) => {
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+<title>Davi Dashboard</title>
+<style>
+body { margin:0; font-family:Arial; background:linear-gradient(135deg,#0f0f1a,#1b1b2f); color:#fff; }
+.login { display:flex; height:100vh; justify-content:center; align-items:center; }
+.card { background:rgba(255,255,255,0.05); padding:40px; border-radius:20px; width:350px; text-align:center; }
+input { padding:12px; width:100%; border-radius:10px; border:none; margin-top:15px; background:#1e1e2f; color:white; }
+button { margin-top:15px; padding:10px 20px; border-radius:10px; border:none; cursor:pointer; font-weight:bold; }
+.btn1 { background:#00f5a0; }
+.btn2 { background:#ff0844; }
+.dashboard { padding:30px; display:none; }
+table { width:100%; border-collapse:collapse; margin-top:20px; }
+th { background:#141427; padding:12px; }
+td { padding:12px; background:rgba(255,255,255,0.03); }
+</style>
+</head>
+<body>
+
+<div class="login" id="login">
+<div class="card">
+<h2>Painel</h2>
+<input type="password" id="pass" placeholder="Senha">
+<button class="btn1" onclick="login()">Entrar</button>
+</div>
+</div>
+
+<div class="dashboard" id="dash">
+<h2>Logs</h2>
+<button class="btn1" onclick="load()">Atualizar</button>
+<button class="btn2" onclick="clearLogs()">Limpar</button>
+
+<table id="table">
+<tr><th>Data</th><th>IP</th><th>Nome</th></tr>
+</table>
+</div>
+
+<script>
+const PASSWORD = "12345";
+
+function login(){
+ if(document.getElementById("pass").value===PASSWORD){
+  document.getElementById("login").style.display="none";
+  document.getElementById("dash").style.display="block";
+  load();
+ }else{
+  alert("Senha errada");
+ }
+}
+
+async function load(){
+ const res = await fetch("/api/logs");
+ const logs = await res.json();
+ const table = document.getElementById("table");
+ table.innerHTML="<tr><th>Data</th><th>IP</th><th>Nome</th></tr>";
+ logs.forEach(log=>{
+  table.innerHTML+=\`<tr><td>\${log.date}</td><td>\${log.ip}</td><td>\${log.name}</td></tr>\`;
+ });
+}
+
+async function clearLogs(){
+ await fetch("/api/clear",{method:"DELETE"});
+ load();
+}
+</script>
+
+</body>
+</html>
+`);
+});
+
+/* ============================= */
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Servidor rodando"));
