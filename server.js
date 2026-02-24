@@ -7,18 +7,15 @@ const app = express();
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.static("public")); // libera áudio
 
 /* ============================= */
-/*  CONEXÃO MONGO                */
+/*  MONGO                        */
 /* ============================= */
 
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("MongoDB conectado"))
 .catch(err => console.log("Erro Mongo:", err));
-
-/* ============================= */
-/*  SCHEMA                       */
-/* ============================= */
 
 const LogSchema = new mongoose.Schema({
     date: String,
@@ -29,7 +26,7 @@ const LogSchema = new mongoose.Schema({
 const Log = mongoose.model("Log", LogSchema);
 
 /* ============================= */
-/*  SITE COM FORMULÁRIO          */
+/*  FORMULÁRIO                   */
 /* ============================= */
 
 app.get("/", (req, res) => {
@@ -38,44 +35,58 @@ app.get("/", (req, res) => {
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
-        <title>Knight Logs</title>
+        <title>Knight</title>
         <style>
             body {
-                background: #111;
-                color: white;
-                font-family: Arial;
+                margin: 0;
+                height: 100vh;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                height: 100vh;
+                background: linear-gradient(135deg, #2c2a4a, #5a5473);
+                font-family: Arial, sans-serif;
             }
-            .box {
-                background: #1e1e1e;
+
+            .card {
+                background: #1e1e2f;
                 padding: 40px;
-                border-radius: 10px;
+                border-radius: 20px;
                 text-align: center;
+                width: 400px;
+                box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+                color: white;
             }
+
             input {
-                padding: 10px;
-                width: 200px;
+                padding: 12px;
+                width: 80%;
+                border-radius: 8px;
                 border: none;
-                border-radius: 5px;
+                margin-top: 15px;
             }
+
             button {
+                margin-top: 15px;
                 padding: 10px 20px;
-                margin-top: 10px;
                 border: none;
-                background: #00ff88;
-                color: black;
-                border-radius: 5px;
+                border-radius: 8px;
                 cursor: pointer;
+                background: #6c63ff;
+                color: white;
                 font-weight: bold;
+            }
+
+            a {
+                display: block;
+                margin-top: 20px;
+                color: #9b7bff;
+                text-decoration: none;
             }
         </style>
     </head>
     <body>
-        <div class="box">
-            <h2>Digite seu nome:</h2>
+        <div class="card">
+            <h2>Digite seu nome</h2>
             <form method="POST" action="/submit">
                 <input type="text" name="name" required />
                 <br>
@@ -88,57 +99,90 @@ app.get("/", (req, res) => {
 });
 
 /* ============================= */
-/*  SALVAR LOG                   */
+/*  SALVAR E MOSTRAR PLAYER      */
 /* ============================= */
 
 app.post("/submit", async (req, res) => {
+
     const ip = req.headers["x-forwarded-for"] || req.socket.remoteAddress;
     const name = req.body.name;
 
     const newLog = new Log({
-        date: new Date().toLocaleString("pt-BR", {
-            timeZone: "America/Sao_Paulo"
-        }),
-        ip: ip,
-        name: name
+        date: new Date().toLocaleString("pt-BR"),
+        ip,
+        name
     });
 
     await newLog.save();
 
     res.send(`
-        <h1>Olá ${name}!</h1>
-        <a href="/">Voltar</a>
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body {
+                margin: 0;
+                height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background: linear-gradient(135deg, #2c2a4a, #5a5473);
+                font-family: Arial, sans-serif;
+            }
+
+            .card {
+                background: #1e1e2f;
+                padding: 40px;
+                border-radius: 20px;
+                text-align: center;
+                width: 450px;
+                box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+                color: white;
+            }
+
+            audio {
+                margin-top: 20px;
+                width: 100%;
+            }
+
+            a {
+                display: block;
+                margin-top: 20px;
+                color: #9b7bff;
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h1>Olá ${name} seu knight broxa!</h1>
+
+            <audio controls autoplay>
+                <source src="/soubonito.mp3" type="audio/mpeg">
+            </audio>
+
+            <a href="/">Voltar</a>
+        </div>
+    </body>
+    </html>
     `);
 });
 
 /* ============================= */
-/*  API PARA APP                 */
+/*  API                          */
 /* ============================= */
 
 app.get("/api/logs", async (req, res) => {
-    try {
-        const logs = await Log.find().sort({ _id: -1 });
-        res.json(logs);
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao buscar logs" });
-    }
+    const logs = await Log.find().sort({ _id: -1 });
+    res.json(logs);
 });
 
 app.delete("/api/clear", async (req, res) => {
-    try {
-        await Log.deleteMany({});
-        res.json({ message: "Logs apagados com sucesso" });
-    } catch (err) {
-        res.status(500).json({ error: "Erro ao apagar logs" });
-    }
+    await Log.deleteMany({});
+    res.json({ message: "Logs apagados" });
 });
 
-/* ============================= */
-/*  START                        */
 /* ============================= */
 
 const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-    console.log("Servidor rodando na porta " + PORT);
-});
+app.listen(PORT, () => console.log("Servidor rodando"));
